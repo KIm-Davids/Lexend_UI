@@ -1,8 +1,69 @@
 "use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import {useState} from "react";
+import Swal from "sweetalert2";
+
 
 export default function SignIn() {
+
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent form from refreshing the page
+  console.log("the email:", email)
+
+    if (!email || !password) {
+      alert("Email and password are required");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8080/sign-in", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if(res.ok){
+        // ✅ Show Swal notification on success
+        await Swal.fire({
+          icon: 'success',
+          title: 'Login Successful',
+          text: `Welcome back, ${email}!`,
+          timer: 3000,
+          showConfirmButton: false,
+        });
+      }
+
+      if(res.ok){
+        router.push("");
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      return data; // Ideally returns token or user info
+    } catch (error) {
+      // ❌ Show error with Swal
+      await Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: error.message,
+      });
+    }
+  };
+
+
   return (
     <div
       id="sign-in"
@@ -204,19 +265,26 @@ export default function SignIn() {
                         </span>
                       </div>
                       <form
-                        onSubmit={(e) => e.preventDefault()}
-                        className="vstack gap-2"
+                          onSubmit={handleLogin}
+                          className="vstack gap-2"
+                          autoComplete="off"
                       >
                         <input
                           className="form-control h-48px w-full bg-white dark:bg-opacity-0 dark:text-white dark:border-gray-300 dark:border-opacity-30"
                           type="email"
                           placeholder="Your email"
+                          value={email}
+                          onChange={(e) => {
+                            setEmail(e.target.value)}
+                          }
                           required
                         />
                         <input
                           className="form-control h-48px w-full bg-white dark:bg-opacity-0 dark:text-white dark:border-gray-300 dark:border-opacity-30"
                           type="password"
                           placeholder="Password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
                           required
                         />
                         <div className="hstack justify-between text-start">
@@ -237,17 +305,17 @@ export default function SignIn() {
                             Forgot password
                           </Link>
                         </div>
-                        <button
-                          className="btn btn-primary btn-md text-white mt-2"
-                          type="submit"
-                        >
-                          Log in
-                        </button>
+                          <button
+                              className="btn btn-primary btn-md text-white mt-2"
+                              type="submit"
+                          >
+                            Log in
+                          </button>
                       </form>
                       <p>
                         Have no account yet?
                         <Link className="uc-link" href={`/sign-up`}>
-                          Sign up
+                        Sign up
                         </Link>
                       </p>
                     </div>

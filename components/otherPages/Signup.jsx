@@ -1,8 +1,62 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
+import React, { useState } from 'react';
+import Swal from 'sweetalert2';
+
+
 export default function Signup() {
-  return (
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+
+    const handleRegister = async (e) => {
+      e.preventDefault();
+      setMessage('');
+      setError('');
+
+      try {
+        const res = await fetch('http://localhost:8080/register/client', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, password}),
+        });
+
+        const data = await res.json();
+
+        if(res.ok){
+          // ✅ Show Swal notification on success
+            await Swal.fire({
+            icon: 'success',
+            title: 'Sign up Successful',
+            text: `Welcome, ${email}!`,
+            timer: 3000,
+            showConfirmButton: false,
+          });
+        }
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Registration failed');
+        }
+
+        setMessage(data.message);
+        setEmail('');
+        setPassword('');
+      } catch (err) {
+        setError(err.message);
+        // ❌ Show error with Swal
+        await Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: err.message,
+        });
+      }
+    }
+
+
+    return (
     <div
       id="sign-in"
       className="sign-in section panel overflow-hidden bg-secondary dark:bg-gray-900"
@@ -203,31 +257,41 @@ export default function Signup() {
                         </span>
                       </div>
                       <form
-                        onSubmit={(e) => e.preventDefault()}
-                        className="vstack gap-2"
+                          onSubmit={handleRegister}
+                          className="vstack gap-2"
                       >
                         <input
-                          className="form-control h-48px w-full bg-white dark:bg-opacity-0 dark:text-white dark:border-gray-300 dark:border-opacity-30"
-                          type="email"
-                          placeholder="Your email"
-                          required
+                            className="form-control h-48px w-full bg-white dark:bg-opacity-0 dark:text-white dark:border-gray-300 dark:border-opacity-30"
+                            type="email"
+                            placeholder="Your email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                        <input
+                            className="form-control h-48px w-full bg-white dark:bg-opacity-0 dark:text-white dark:border-gray-300 dark:border-opacity-30"
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
                         />
                         <div className="hstack text-start">
                           <div className="form-check text-start rtl:text-end">
                             <input
-                              id="uc_form_check_terms"
-                              className="form-check-input rounded bg-white dark:bg-opacity-0 dark:text-white dark:border-gray-300 dark:border-opacity-30"
-                              type="checkbox"
-                              required
+                                id="uc_form_check_terms"
+                                className="form-check-input rounded bg-white dark:bg-opacity-0 dark:text-white dark:border-gray-300 dark:border-opacity-30"
+                                type="checkbox"
+                                required
                             />
                             <label
-                              htmlFor="uc_form_check_terms"
-                              className="hstack justify-between form-check-label fs-6"
+                                htmlFor="uc_form_check_terms"
+                                className="hstack justify-between form-check-label fs-6"
                             >
                               I read and accept the
                               <Link
-                                href={`/page-terms`}
-                                className="uc-link ltr:ms-narrow rtl:me-narrow"
+                                  href={`/page-terms`}
+                                  className="uc-link ltr:ms-narrow rtl:me-narrow"
                               >
                                 terms of use
                               </Link>
@@ -236,8 +300,8 @@ export default function Signup() {
                           </div>
                         </div>
                         <button
-                          className="btn btn-primary btn-md text-white mt-2"
-                          type="submit"
+                            className="btn btn-primary btn-md text-white mt-2"
+                            type="submit"
                         >
                           Create my account
                         </button>
